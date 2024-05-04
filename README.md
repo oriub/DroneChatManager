@@ -1,4 +1,4 @@
-![config](https://github.com/oriub/DroneChatManager/assets/164090680/8f351aba-8b6f-4fe8-8a34-8945e9546561)# DroneChatManager
+# DroneChatManager
 DroneChatManger (DCM if you like) is a Python program that controls and gets telemetry from a drone (that runs arducopter) using a chat website.
 It uses pymavlink to communicate with the drone, and a websocket to connect to the chat as a client. then users connected to the chat can send commands and get telemetry from the drone.
 
