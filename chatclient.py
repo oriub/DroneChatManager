@@ -29,9 +29,13 @@ class ChatClient(websocket.WebSocketApp):
         super().__init__(url=config.CHAT_SOCKET_URL, on_message=on_message, on_error=on_error, on_open=on_open, on_close=on_close, header=headers, cookie=formatted_cookie)
 
     def send_chat_message(self, recipient: str, message: str) -> None:
+        print("in send_chat_message")
         message_dict = {"recipient": recipient, "message": message}
         message_json = json.dumps(message_dict)
-        super().send_text(message_json)
+        self.send_text(message_json)
+
+    def hi(self):
+        print(self.username)
 
 
 def msg(ws, txt):

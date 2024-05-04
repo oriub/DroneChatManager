@@ -18,4 +18,3 @@ TODO:
 '''
 
 manager = DroneCommandReceiver("1", "1", ip, port,)
-manager.drone.arm()

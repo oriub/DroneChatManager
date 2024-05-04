@@ -1,3 +1,5 @@
+import math
+
 from pymavlink import mavutil
 
 
@@ -17,6 +19,7 @@ class Drone:
         response = self._send_command(command_id=mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, param1=1)
         print(response)
         self.connection.motors_armed_wait()
+
 
     def takeoff(self, altitude, longitude=0, latitude=0, yaw=0):
         response = self._send_command(command_id=mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, param4=yaw, param5=latitude,
@@ -53,20 +56,24 @@ class Drone:
         # print(response)
 
     def get_location(self):
-        print(self.connection.location())
-        return self.connection.location()
+        print(str(self.connection.location()))
+        return str(self.connection.location())
 
     def get_speed(self):
-        response = self._req_message_get_response(message_type='CONTROL_SYSTEM_STATE',
-                                                  message_id=mavutil.mavlink.MAVLINK_MSG_ID_CONTROL_SYSTEM_STATE)
+        response = self._req_message_get_response(message_type='LOCAL_POSITION_NED',
+                                                  message_id=mavutil.mavlink.MAVLINK_MSG_ID_LOCAL_POSITION_NED)
         print(response)
+        speed = math.sqrt(response.vx**2 + response.vy**2 + response.vz**2)
+        return f"total speed is {speed} m/sec"
 
     def get_battery(self):
         response = self.connection.recv_match(type='BATTERY_STATUS', blocking=True)
         print(response)
+        return str(response)
 
     def is_armed(self):
-        return self.connection.motors_armed()
+        print(f"is armed: {self.connection.motors_armed() > 0}")
+        return self.connection.motors_armed() > 0
 
     def _send_command(self, command_id, param1=0, param2=0, param3=0, param4=0, param5=0, param6=0, param7=0):
         """
@@ -106,6 +113,7 @@ class Drone:
 
     def _request_message(self, message_id, req_param1=0, req_param2=0, req_param3=0, req_param4=0, req_param5=0,
                          response_target=0):
+        print(f"requesting message {message_id}")
         self._send_command(mavutil.mavlink.MAV_CMD_REQUEST_MESSAGE, param1=message_id, param2=req_param1,
                            param3=req_param2, param4=req_param3, param5=req_param4, param6=req_param5,
                            param7=response_target)
@@ -115,3 +123,4 @@ class Drone:
         self._request_message(message_id, req_param1, req_param2, req_param3, req_param4, req_param5, response_target)
         response = self.connection.recv_match(type=message_type, blocking=True)
         return response
+
