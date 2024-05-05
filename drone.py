@@ -2,6 +2,18 @@ import math
 
 from pymavlink import mavutil
 
+COMMAND_ERROR_MESSAGES = {
+    1: "Command is valid, but cannot be executed at this time. This is used to indicate a problem that should be "
+       "fixed just by waiting",
+    2: "Command is invalid (is supported but has invalid parameters)",
+    3: "Command is not supported (unknown).",
+    4: "Command is valid, but execution has failed. This is used to indicate any non-temporary or unexpected "
+       "problem, i.e. any problem that must be fixed before the command can succeed/be retried.",
+    5: "Command is valid and is being executed.",
+    6: "Command has been cancelled",
+    "other": "Command failed for an unknown reason, this should not happen"
+}
+
 
 class Drone:
     def __init__(self, ip_address, port, protocol="udpin"):
@@ -19,7 +31,6 @@ class Drone:
         response = self._send_command(command_id=mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, param1=1)
         print(response)
         self.connection.motors_armed_wait()
-
 
     def takeoff(self, altitude, longitude=0, latitude=0, yaw=0):
         response = self._send_command(command_id=mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, param4=yaw, param5=latitude,
@@ -63,7 +74,7 @@ class Drone:
         response = self._req_message_get_response(message_type='LOCAL_POSITION_NED',
                                                   message_id=mavutil.mavlink.MAVLINK_MSG_ID_LOCAL_POSITION_NED)
         print(response)
-        speed = math.sqrt(response.vx**2 + response.vy**2 + response.vz**2)
+        speed = math.sqrt(response.vx ** 2 + response.vy ** 2 + response.vz ** 2)
         return f"total speed is {speed} m/sec"
 
     def get_battery(self):
@@ -109,6 +120,14 @@ class Drone:
 
         response = self.connection.recv_match(type='COMMAND_ACK', blocking=True)
 
+        print(f"result {response.result}, type {type(response.result)}")
+        if not response.result == 0:
+            print("received invalid response from drone")
+            exc = Exception(COMMAND_ERROR_MESSAGES["other"])
+            if response.result in COMMAND_ERROR_MESSAGES.keys():
+                exc = Exception(COMMAND_ERROR_MESSAGES[response.result])
+            raise exc
+
         return response
 
     def _request_message(self, message_id, req_param1=0, req_param2=0, req_param3=0, req_param4=0, req_param5=0,
@@ -123,4 +142,3 @@ class Drone:
         self._request_message(message_id, req_param1, req_param2, req_param3, req_param4, req_param5, response_target)
         response = self.connection.recv_match(type=message_type, blocking=True)
         return response
-

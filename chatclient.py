@@ -26,7 +26,9 @@ class ChatClient(websocket.WebSocketApp):
             raise Exception("no cookies were sent from the server - something is wrong")
         formatted_cookie = f"jwt={cookies['jwt']}"
         print("hi")
-        super().__init__(url=config.CHAT_SOCKET_URL, on_message=on_message, on_error=on_error, on_open=on_open, on_close=on_close, header=headers, cookie=formatted_cookie)
+        print("connecting to socket")
+
+        super().__init__(url=config.CHAT_SOCKET_URL, on_message=on_message, on_error=self._error, on_open=on_open, on_close=on_close, header=headers, cookie=formatted_cookie)
 
     def send_chat_message(self, recipient: str, message: str) -> None:
         print("in send_chat_message")
@@ -34,8 +36,11 @@ class ChatClient(websocket.WebSocketApp):
         message_json = json.dumps(message_dict)
         self.send_text(message_json)
 
-    def hi(self):
-        print(self.username)
+    @staticmethod
+    def _error(ws, exc: Exception) -> None:
+        print("got exception {}".format(exc))
+        raise exc
+
 
 
 def msg(ws, txt):
