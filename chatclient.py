@@ -43,17 +43,3 @@ class ChatClient(websocket.WebSocketApp):
 
 
 
-def msg(ws, txt):
-    print("got message", txt)
-    j = json.loads(txt)
-    print(j)
-
-
-def error(ws, e):
-    print("an error occurred", e)
-    raise Exception(e)
-
-
-# cl = ChatClient("2", "2", on_message=msg, on_error=error)
-# cl.run_forever()
-
